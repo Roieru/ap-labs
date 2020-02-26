@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <string.h>
+
+int main(int argc, char **argv) {
+
+	if (argc > 1) {
+		char *string = argv[1];
+		int charCount[256];
+		char starting = 1;
+		int startingIndex = 0;
+		int currentIndex;
+		int currentLength = 0;
+		int maxLength = 1;
+
+		int i;
+
+		while (startingIndex < strlen(string)) {
+			if (starting) {
+				for (i = 0; i < 256; i++) {
+					charCount[i] = 0;
+				}
+
+				currentLength = 1;
+				starting = 0;
+				currentIndex = startingIndex + 1;
+			}
+
+			if (charCount[(int) string[currentIndex]] == 0) {
+				currentLength++;
+				currentIndex++;
+				charCount[(int) string[currentIndex]] = 1;
+				c
+				if (currentLength > maxLength) {
+					maxLength = currentLength;
+				}
+				if (currentIndex >= strlen(string)) {
+					break;
+				}
+			}
+			else {
+				starting = 1;
+				startingIndex++;
+			}
+		}
+
+		printf("%d\n",maxLength);
+
+	}
+	
+	return 0;
+
+}
