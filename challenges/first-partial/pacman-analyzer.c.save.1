@@ -5,23 +5,18 @@
 #include <unistd.h>
 
 #define REPORT_FILE "packages_report.txt"
-#define DATE_LEN 17
-#define NAME_LEN 32
-#define PACK_SIZE 1024
-#define PINFO 64
-#define LINE_LEN 512
 
 void analizeLog(char *logFile, char *report);
 
 struct package {
-	char name[NAME_LEN];
-	char installed[DATE_LEN];
-	char upgraded[DATE_LEN];
+	char *name;
+	char *installed;
+	char *upgraded;
 	int upgrades;
-	char removal[DATE_LEN];
+	char *removal;
 };
 
-struct package packages[PACK_SIZE];
+struct package packages[1024];
 
 int main(int argc, char **argv) {
 
@@ -36,22 +31,26 @@ int main(int argc, char **argv) {
 }
 
 void analizeLog(char *logFile, char *report) {
-    	printf("Generating Report from: [%s] log file\n", logFile);
+    printf("Generating Report from: [%s] log file\n", logFile);
+
+    // Implement your solution here.
 
 	int inputFileDesc = open(logFile,O_RDONLY);
 	if(inputFileDesc < 0){
-		printf("Error! Something went wrong with the log file.\n");
-		return;
+		printf("Error!\n");
 	}
 
-	int fd = open(report, O_WRONLY|O_TRUNC|O_CREAT,0664);
+	int fd;
+	fd = open(report, O_WRONLY|O_TRUNC|O_CREAT,0664);
+
+	printf("%d\n",fd);
+
 	if(fd < 0){
-		printf("Error! Something went wrong with the output file.\n");
-		return;
+		printf("Error!\n");
 	}
 
 	char readC[1];
-	char line[LINE_LEN];
+	char line[512];
 	int i = 0;
 	int end = 1;
 	int totalInstalled = 0;
@@ -59,7 +58,7 @@ void analizeLog(char *logFile, char *report) {
 	int totalUpgrades = 0;
 	int currentInstalled = 0;
 
-	while(end != 0){
+	while(totalInstalled < 10){
 		end = read(inputFileDesc,readC,1);
 		while(readC[0] != '\n'){
 			line[i] = readC[0];
@@ -67,82 +66,87 @@ void analizeLog(char *logFile, char *report) {
 			i++;
 		}
 		line[i] = '\0';
+		//printf("%s\n",line);
 		char * pch;
 		pch = strtok(line,"[]");
 		char *date = pch;
+		//printf("%s\n",date);
 		pch = strtok(NULL," ");
 		if(pch!=NULL){
 			char *isALPM = pch;
+			//printf("%s\n",isALPM);
 			pch = strtok(NULL," ");
 			char *action = pch;
+			//printf("%s\n",action);
 			pch = strtok(NULL," ");
 			char *pack = pch;
+			//printf("%s\n",pack);
 
 			if(strcmp(isALPM,"[ALPM]")==0){
 				if(strcmp("installed",action)==0){
-					struct package np;
+					//struct package np = { .name = pack, .installed = date, .upgraded = "-", .upgrades = 0, .removal = "-"};
+					//printf("AAAAAAAA%s\n",np.name);
+					//packages[totalInstalled].name = pack;
+					//packages[totalInstalled].installed = date;
+					//packages[totalInstalled].upgraded = "-";
+					//packages[totalInstalled].upgrades = 0;
+					//packages[totalInstalled].removal = "-"
 
-					strcpy(np.name,pack);
-					strcpy(np.installed,date);
-					strcpy(np.upgraded,"-");
-					np.upgrades = 0;
-					strcpy(np.removal,"-");
-
-					int j;
-					int index = -1;
-					for(j=0;j<totalInstalled;j++){
-						if(strcmp(packages[j].name,pack)==0){
-							index = j;
-							break;
-						}
-					}
-
-					if(index<0){
-						packages[totalInstalled] = np;
-						totalInstalled++;
-					} else{
-						if(packages[index].upgrades>0){
-							totalUpgrades--;
-						}
-						packages[index] = np;
-						totalRemoved--;
-					}
+					
+;
+					//packages[totalInstalled] = np;
+					printf("%d\n",totalInstalled);
+					printf("BBBBBB%s\n",packages[0].name);
+					totalInstalled++;
 					currentInstalled++;
-
+					//printf("%d\n",totalInstalled);
 				} else if(strcmp("upgraded",action)==0){
 					int j;
+					//printf("%s\n",pack);
 					for(j=0;j<totalInstalled;j++){
+						//printf("%s\n",packages[j].name);
 						if(strcmp(packages[j].name,pack)==0){
-							strcpy(packages[j].upgraded,date);
-							if(packages[j].upgrades==0){
-								totalUpgrades++;
-							}
+							packages[j].upgraded = date;
 							packages[j].upgrades++;
+							printf("CCCCCCCCCCC\n");
 							break;
 						}
 					}
+					totalUpgrades++;
+					//printf("%d\n",totalUpgrades);
 				}else if(strcmp("removed",action)==0){
+					//printf("REMOVED\n");
 					int j;
 					for(j=0;j<totalInstalled;j++){
 						if(strcmp(packages[j].name,pack)==0){
-							strcpy(packages[j].removal,date);
+							printf("DDDDDDDDDD\n");
+							packages[j].removal = date;
 							break;
 						}
 					}
 					totalRemoved++;
 					currentInstalled--;
+					//printf("%d\n",totalRemoved);
 				}
+				//printf("%s\n",packages[0].name);
 			}
+			//printf("%s\n",packages[0].name);
 		}
+		//printf("%d\n",totalInstalled);
 		i = 0;
+		end = 0;
+		//printf("%s\n",packages[0].name);
 	}
+
+	//printf("%s\n",packages[0].name);
+	//printf("%s\n",packages[0].name);
 
 	close(inputFileDesc);
 
 	char *title;
 	title = "Pacman Packages Report\n----------------------\n";
 	write(fd,title,strlen(title));
-	char genInfo[NAME_LEN];
+	char genInfo[32];
 	sprintf(genInfo,"- Installed packages\t: %d\n",totalInstalled);
 	write(fd,genInfo,strlen(genInfo));
 	sprintf(genInfo,"- Removed packages\t: %d\n",totalRemoved);
@@ -154,12 +158,16 @@ void analizeLog(char *logFile, char *report) {
 	title="\nList of packages\n----------------\n";
 	write(fd,title,strlen(title));
 
-	char packInfo[PINFO];
+	//printf("%s\n",packages[0].name);
+	//printf("Length of packages: %d\n",totalInstalled);
+
+	char packInfo[64];
 	int j;
 	for(j=0;j<totalInstalled;j++){
 		struct package cp = packages[j];
 		sprintf(packInfo,"- Package Name\t: %s\n",packages[j].name);
 		write(fd,packInfo,strlen(packInfo));
+		//printf("%s\n",packInfo);
 		sprintf(packInfo,"  - Install date\t: %s\n",cp.installed);
 		write(fd,packInfo,strlen(packInfo));
 		sprintf(packInfo,"  - Last update date\t: %s\n",cp.upgraded);
@@ -170,7 +178,34 @@ void analizeLog(char *logFile, char *report) {
 		write(fd,packInfo,strlen(packInfo));
 	}
 
+	//printf("%d\n",totalInstalled);
+	//write(fd,date,i);
+
+	//write(fd,date,18);
+	//write(fd,"\n",1);
+	//write(fd,&date[1],4);
 	close(fd);
 
-    	printf("Report was generated at: [%s]\n", report);
+	printf("%d\n",inputFileDesc);
+
+    printf("Report is generated at: [%s]\n", report);
+}
+
+void fill(char *line) {
+	char isALPM[6];
+	int i;
+
+	for(i = 0; i<6; i++){
+		isALPM[i] = line[19+i];
+	}
+	printf("%s\n",isALPM);
+
+	if(strcmp("[ALPM]",isALPM) == 0){
+		char date[16];
+
+		for(i=0;i<16;i++){
+			date[i] = line[i+1];
+		}
+		//printf("AAAAAAAAAAAAAAAAAAAAAAAAAa\n");
+	}
 }
