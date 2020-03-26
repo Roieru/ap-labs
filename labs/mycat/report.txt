@@ -1,0 +1,96 @@
+MY CAT REPORT
+
+
+
+Non-existing file
+===========================================================
+cat
+===========================================================
+
+ap-user@ap-labs:~/ap-labs/labs/mycat$ time cat a
+cat: a: No such file or directory
+
+real    0m0.001s
+user    0m0.000s
+sys     0m0.001s
+
+===========================================================
+mycat
+===========================================================
+
+ap-user@ap-labs:~/ap-labs/labs/mycat$ time ./cat2 a
+./cat2: can′t open a
+
+real    0m0.008s
+user    0m0.001s
+sys     0m0.000s
+
+===========================================================
+
+cat was faster by 0.007s
+
+===========================================================
+
+
+
+One existing file
+===========================================================
+cat
+===========================================================
+
+ap-user@ap-labs:~/ap-labs/labs/mycat$ time cat test.txt
+Testing mycat with this text
+
+real    0m0.001s
+user    0m0.001s
+sys     0m0.000s
+
+===========================================================
+mycat
+===========================================================
+
+ap-user@ap-labs:~/ap-labs/labs/mycat$ time ./cat2 test.txt
+Testing mycat with this text
+
+real    0m0.001s
+user    0m0.001s
+sys     0m0.000s
+
+===========================================================
+
+Both versions of cat took the same amount of time
+
+===========================================================
+
+
+
+Two existing files
+===========================================================
+cat
+===========================================================
+
+ap-user@ap-labs:~/ap-labs/labs/mycat$ time cat test.txt test2.txt
+Testing mycat with this text
+Also testing with this!
+
+real    0m0.002s
+user    0m0.001s
+sys     0m0.000s
+
+===========================================================
+mycat
+===========================================================
+
+ap-user@ap-labs:~/ap-labs/labs/mycat$ time ./cat2 test.txt test2.txt
+Testing mycat with this text
+Also testing with this!
+
+real    0m0.001s
+user    0m0.001s
+sys     0m0.000s
+
+===========================================================
+
+mycat was faster by 0.001s
+
+===========================================================
