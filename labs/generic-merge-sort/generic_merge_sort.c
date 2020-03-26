@@ -66,7 +66,13 @@ void mergeSort(char arr[][ELEN], int l, int r) {
 int main(int argc, char **argv) {
 
 	sort = ((argc > 1 && strcmp(argv[1],"-n")==0) ? NUMSORT : STRSORT);
-	compare = (NUMSORT ? (int(*)(void *, void *))(&numcompare) : (int(*)(void *, void*))(&strcmp));
+
+	printf("%d\n",sort);
+	compare = (sort ? (int(*)(void *, void *))(&numcompare) : (int(*)(void *, void *))(&strcmp));
+
+	compare = (int(*)(void *, void *))&strcmp;
+
+	printf("%d with b and a\n",(*compare)("b","a"));
 
 	int n;
 	char tempn[ELEN];
