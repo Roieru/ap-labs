@@ -11,18 +11,30 @@ import (
 	"log"
 	"net"
 	"os"
+	"flag"
 )
 
 //!+
 func main() {
-	conn, err := net.Dial("tcp", "localhost:8000")
+
+	var username string
+	flag.StringVar(&username, "user", "DefaultUsername", "Your username")
+
+	var serverAdd string
+	flag.StringVar(&serverAdd, "server", "localhost:8000", "The server's address")
+
+	flag.Parse()
+
+	conn, err := net.Dial("tcp", serverAdd)
 	if err != nil {
 		log.Fatal(err)
 	}
+	io.WriteString(conn,username)
 	done := make(chan struct{})
 	go func() {
 		io.Copy(os.Stdout, conn) // NOTE: ignoring errors
-		log.Println("done")
+		log.Println("You've been disconnected from the IRC server")
+		os.Exit(1)
 		done <- struct{}{} // signal the main goroutine
 	}()
 	mustCopy(conn, os.Stdin)
