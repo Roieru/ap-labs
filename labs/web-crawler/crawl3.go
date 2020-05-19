@@ -15,50 +15,77 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-
-	"gopl.io/ch5/links"
+	"flag"
+	"github.com/adonovan/gopl.io/ch5/links"
 )
+
+type DepthLink struct{
+	depth int
+	url string
+}
+
+var maxDepth int
 
 //!+sema
 // tokens is a counting semaphore used to
 // enforce a limit of 20 concurrent requests.
 var tokens = make(chan struct{}, 20)
 
-func crawl(url string) []string {
-	fmt.Println(url)
+func crawl(dLink DepthLink) []DepthLink {
+	fmt.Println(dLink.url)
+
+	if(dLink.depth == maxDepth){
+		return make([]DepthLink,0)
+	}
+
 	tokens <- struct{}{} // acquire a token
-	list, err := links.Extract(url)
+	list, err := links.Extract(dLink.url)
 	<-tokens // release the token
+
+	ret := make([]DepthLink,len(list))
+
+	for i := 0; i < len(list); i++{
+		ret[i] = DepthLink{dLink.depth + 1, list[i]}
+	}
 
 	if err != nil {
 		log.Print(err)
 	}
-	return list
+	return ret
 }
 
 //!-sema
 
 //!+
 func main() {
-	worklist := make(chan []string)
+
+	flag.IntVar(&maxDepth, "depth", 0, "Max depth for crawling")
+
+	flag.Parse()
+
+	worklist := make(chan []DepthLink)
 	var n int // number of pending sends to worklist
 
 	// Start with the command-line arguments.
 	n++
-	go func() { worklist <- os.Args[1:] }()
+	initLinks := flag.Args()
+	firstDL := make([]DepthLink, len(initLinks))
+	for i := 0; i < len(initLinks); i++{
+		firstDL[i] = DepthLink{0, initLinks[i]}
+	}
+	go func() { worklist <- firstDL }()
 
 	// Crawl the web concurrently.
 	seen := make(map[string]bool)
 	for ; n > 0; n-- {
 		list := <-worklist
-		for _, link := range list {
-			if !seen[link] {
-				seen[link] = true
+		for _, dLink := range list {
+			if !seen[dLink.url] && dLink.depth <= maxDepth{
+				seen[dLink.url] = true
 				n++
-				go func(link string) {
-					worklist <- crawl(link)
-				}(link)
+				go func(dLink DepthLink) {
+					worklist <- crawl(dLink)
+				}(dLink)
 			}
 		}
 	}
